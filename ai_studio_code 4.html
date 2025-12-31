@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <style>
+        /* RESET & BASICS */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            font-family: 'Playfair Display', serif;
+            scroll-behavior: smooth;
+        }
+
+        /* SCROLL SNAP SETUP */
+        main {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+        }
+
+        /* SECTIONS */
+        section {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            color: white;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden; /* Keep hearts inside */
+        }
+
+        /* TEXT STYLING */
+        h1 {
+            font-size: 3rem;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+            line-height: 1.5;
+            max-width: 90%;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.5s ease-out;
+            z-index: 10;
+        }
+
+        .highlight {
+            color: #ffdd00;
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+        }
+
+        /* OVERLAY */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4); 
+            z-index: 1;
+        }
+        
+        .content {
+            z-index: 10;
+            position: relative;
+        }
+
+        /* BACKGROUNDS */
+        .bg-sunflower { background-image: url('https://images.unsplash.com/photo-1470509037663-253afd7f0f51?q=80&w=1920&auto=format&fit=crop'); }
+        .bg-tulip { background-image: url('https://images.unsplash.com/photo-1520763185298-1b434c919102?q=80&w=1920&auto=format&fit=crop'); }
+        .bg-lotus { background-image: url('https://images.unsplash.com/photo-1596707328108-0130f14643ee?q=80&w=1920&auto=format&fit=crop'); }
+
+        /* START SCREEN */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            transition: opacity 1s ease;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background-color: #ffcc00;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Playfair Display', serif;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* HEART ANIMATION STYLES */
+        .heart {
+            position: fixed;
+            bottom: -50px;
+            font-size: 2rem;
+            color: #ff4d4d;
+            user-select: none;
+            pointer-events: none;
+            z-index: 9999; /* On top of everything */
+            animation: floatUp linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-110vh) scale(1.2) rotate(20deg);
+                opacity: 0;
+            }
+        }
+
+        /* JS Helper Classes */
+        .visible-text h1 {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .scroll-hint {
+            font-size: 1rem;
+            margin-top: 20px;
+            opacity: 0.7;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .highlight { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop>
+        <source src="song.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="start-screen">
+        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background-image: url('https://images.unsplash.com/photo-1470509037663-253afd7f0f51?q=80&w=1920'); background-size:cover; opacity:0.5;"></div>
+        <div style="z-index:2; text-align:center;">
+            <h2 style="color:white; margin-bottom:30px; text-shadow: 2px 2px 4px black;">I have a message for you...</h2>
+            <button onclick="startJourney()">Please click the button below</button>
+        </div>
+    </div>
+
+    <main id="main-container" style="display:none;">
+
+        <!-- 1. Intro (Sunflower) -->
+        <section class="bg-sunflower">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>Hey babe, do you know something?</h1>
+                <div class="scroll-hint">Scroll down ↓</div>
+            </div>
+        </section>
+
+        <!-- 2. Best Thing (Tulip) -->
+        <section class="bg-tulip">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>You’re the <span class="highlight">best thing</span> that happened to me this year.</h1>
+            </div>
+        </section>
+
+        <!-- 3. Grateful / Dumb (Lotus) -->
+        <section class="bg-lotus">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>And I am grateful for you being there for me...<br><br>even when I’m so dumb and a shithead.</h1>
+            </div>
+        </section>
+
+        <!-- 4. Love (Sunflower) -->
+        <section class="bg-sunflower">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>Thank you for the <span class="highlight">love</span>.</h1>
+            </div>
+        </section>
+
+        <!-- 5. Joyous (Tulip) -->
+        <section class="bg-tulip">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>Thank you for the <span class="highlight">joyous moments</span>.</h1>
+            </div>
+        </section>
+
+        <!-- 6. Being There (Lotus) -->
+        <section class="bg-lotus">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>Thank you for being there when I <span class="highlight">needed you</span>.</h1>
+            </div>
+        </section>
+
+        <!-- 7. Understanding (Sunflower) -->
+        <section class="bg-sunflower">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>Thank you for <span class="highlight">understanding</span>.</h1>
+            </div>
+        </section>
+
+        <!-- 8. Special Moments (Tulip) -->
+        <section class="bg-tulip">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>Thank you for making every moment <span class="highlight">special</span>.</h1>
+            </div>
+        </section>
+
+        <!-- 9. I'm Me (Lotus) -->
+        <section class="bg-lotus">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>Thank you that <span class="highlight">I’m me</span> now.</h1>
+            </div>
+        </section>
+
+        <!-- 10. Found You (Sunflower) -->
+        <section class="bg-sunflower">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>And I am so thankful that I <span class="highlight">found you</span>.</h1>
+            </div>
+        </section>
+
+        <!-- 11. Happy New Year (Tulip) -->
+        <section class="bg-tulip">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>I wish you a <span class="highlight">Happy New Year</span><br>and a great year ahead.</h1>
+            </div>
+        </section>
+
+        <!-- 12. Final Apology/Love (Lotus) -->
+        <section class="bg-lotus">
+            <div class="overlay"></div>
+            <div class="content">
+                <h1>Babe I <span class="highlight">love you</span>...<br><br>and I’m sorry that I’m so dumb.</h1>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function startJourney() {
+            const startScreen = document.getElementById('start-screen');
+            const mainContainer = document.getElementById('main-container');
+            const audio = document.getElementById('bg-music');
+
+            audio.play().catch(e => console.log("Audio needed interaction"));
+            startScreen.style.opacity = '0';
+
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                mainContainer.style.display = 'block';
+                setupObserver();
+                
+                // Start a gentle flow of background hearts
+                setInterval(createHeart, 800);
+            }, 1000);
+        }
+
+        // Function to create a single floating heart
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤️'; 
+            
+            // Random Horizontal Position
+            heart.style.left = Math.random() * 100 + "vw";
+            
+            // Random Animation Duration (3s to 6s)
+            heart.style.animationDuration = Math.random() * 3 + 3 + "s";
+            
+            // Random Size
+            heart.style.fontSize = Math.random() * 20 + 20 + "px";
+
+            document.body.appendChild(heart);
+
+            // Remove heart after animation finishes to prevent memory leaks
+            setTimeout(() => {
+                heart.remove();
+            }, 6000);
+        }
+
+        // Burst function: Spawns 15 hearts at once
+        function burstHearts() {
+            for(let i=0; i<15; i++) {
+                setTimeout(createHeart, i * 100); // Stagger them slightly
+            }
+        }
+
+        function setupObserver() {
+            const sections = document.querySelectorAll('section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // 1. Show Text
+                        entry.target.classList.add('visible-text');
+                        
+                        // 2. Trigger Heart Burst Animation
+                        burstHearts();
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        }
+    </script>
+</body>
+</html>
